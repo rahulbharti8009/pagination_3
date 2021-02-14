@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">GiphyTest</string>
+    <string name="retry">str_retry</string>
+</resources>
