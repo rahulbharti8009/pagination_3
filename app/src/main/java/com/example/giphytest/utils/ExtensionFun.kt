@@ -4,7 +4,9 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
+import com.example.giphytest.BuildConfig
 
 //Intent+Extenions
 inline fun <reified T : Any> Activity.launchActivity(
@@ -23,4 +25,11 @@ inline fun <reified T : Any> newIntent(context: Context): Intent = Intent(contex
 
 fun Activity.shortToast(msg: String) {
     Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
+}
+
+
+
+fun debugLog(tag: String, message: String) {
+    if (BuildConfig.DEBUG)
+        Log.e(tag, message)
 }

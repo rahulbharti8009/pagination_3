@@ -27,8 +27,8 @@ class MyViewModel  @ViewModelInject constructor(var authRepository: AuthReposito
         }
     }
 
-    val listData : Flow<PagingData<RedditPost>> = Pager(PagingConfig(pageSize = 60)) {
-        PostDataSource(apiCall)
+    fun listData(search : String = "ANDROIDDEV") : Flow<PagingData<RedditPost>> = Pager(PagingConfig(pageSize = 50, enablePlaceholders = false)) {
+        PostDataSource(apiCall, search)
     }.flow.cachedIn(viewModelScope)
 
 }

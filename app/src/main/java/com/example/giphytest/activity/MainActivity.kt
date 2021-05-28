@@ -1,6 +1,8 @@
 package com.example.giphytest.activity
 
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.util.Log
 import android.view.LayoutInflater
 import androidx.activity.viewModels
@@ -11,11 +13,11 @@ import com.example.giphytest.adapter.GiphyAdapter
 import com.example.giphytest.api.Status
 import com.example.giphytest.common.BaseActivity
 import com.example.giphytest.databinding.ActivityMainBinding
-import com.example.giphytest.di.MyModule
 import com.example.giphytest.pagination3.MainListAdapter
 import com.example.giphytest.pagination3.PostsLoadStateAdapter
 import com.example.giphytest.viewmodel.MyViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.distinctUntilChangedBy
@@ -25,6 +27,7 @@ import kotlinx.coroutines.launch
 @AndroidEntryPoint
 class MainActivity : BaseActivity() {
     var tag = "MainActivity"
+    private var searchJob: Job? = null
 
     lateinit var binding: ActivityMainBinding
     private val viewModel by viewModels<MyViewModel>()
@@ -37,7 +40,35 @@ class MainActivity : BaseActivity() {
         setContentView(binding.root)
         initAdapter()
         initSwipeToRefresh()
+
+        binding.etTitle.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+            }
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                if (!s.isNullOrBlank()) {
+                    searchJob?.cancel()
+                    searchJob = lifecycleScope.launch {
+                        viewModel.listData(s.toString()).collectLatest {
+                            adapter.submitData(it)
+                        }
+                    }
+                }else{
+                    searchJob?.cancel()
+                    searchJob = lifecycleScope.launch {
+                        viewModel.listData().collectLatest {
+                            adapter.submitData(it)
+                        }
+                    }
+                }
+            }
+
+            override fun afterTextChanged(s: Editable?) {
+            }
+
+        })
     }
+
     private fun initSwipeToRefresh() {
         binding.swipeRefresh.setOnRefreshListener { adapter.refresh() }
     }
@@ -56,8 +87,14 @@ class MainActivity : BaseActivity() {
             }
         }
 
+//       searchJob?.cancel()
+//       searchJob = lifecycleScope.launch {
+//            viewModel.listData().collectLatest {
+//                adapter.submitData(it)
+//            }
+//        }
         lifecycleScope.launchWhenCreated {
-            viewModel.listData.distinctUntilChanged().collectLatest {
+            viewModel.listData().distinctUntilChanged().collectLatest {
                 adapter.submitData(it)
             }
         }
@@ -72,36 +109,36 @@ class MainActivity : BaseActivity() {
         }
     }
 
-    override fun initialized() {
-        super.initialized()
-        binding.rvGiphy.layoutManager =
-            LinearLayoutManager(applicationContext, LinearLayoutManager.VERTICAL, false)
-        giphyAdapter = GiphyAdapter(this, null)
-//        binding.rvGiphy.adapter = giphyAdapter
-
-        viewModel.getData().observe(this, {
-            it.let { resource ->
-                when (resource.status) {
-                    Status.SUCCESS -> {
-                        it.data?.let {
-                            Log.e(tag, "SUCCESS ${it.meta.msg}")
-                            giphyAdapter = GiphyAdapter(this, it.data)
-                            binding.rvGiphy.adapter = giphyAdapter
-                            giphyAdapter.notifyDataSetChanged()
-                        }
-                    }
-                    Status.ERROR -> {
-                        Log.e(tag, "ERROR")
-                        it?.message.let {
-                            Log.e(tag, it!!)
-                        }
-                    }
-                    Status.LOADING -> {
-                        Log.e(tag, "Loading")
-                    }
-                }
-            }
-        })
-    }
+//    override fun initialized() {
+//        super.initialized()
+//        binding.rvGiphy.layoutManager =
+//            LinearLayoutManager(applicationContext, LinearLayoutManager.VERTICAL, false)
+//        giphyAdapter = GiphyAdapter(this, null)
+////        binding.rvGiphy.adapter = giphyAdapter
+//
+//        viewModel.getData().observe(this, {
+//            it.let { resource ->
+//                when (resource.status) {
+//                    Status.SUCCESS -> {
+//                        it.data?.let {
+//                            Log.e(tag, "SUCCESS ${it.meta.msg}")
+//                            giphyAdapter = GiphyAdapter(this, it.data)
+//                            binding.rvGiphy.adapter = giphyAdapter
+//                            giphyAdapter.notifyDataSetChanged()
+//                        }
+//                    }
+//                    Status.ERROR -> {
+//                        Log.e(tag, "ERROR")
+//                        it?.message.let {
+//                            Log.e(tag, it!!)
+//                        }
+//                    }
+//                    Status.LOADING -> {
+//                        Log.e(tag, "Loading")
+//                    }
+//                }
+//            }
+//        })
+//    }
 
 }

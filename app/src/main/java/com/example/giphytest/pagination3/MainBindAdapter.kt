@@ -6,6 +6,7 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.giphytest.R
+import com.example.giphytest.entity.Data
 import com.example.giphytest.pagination3.enity.Children
 import com.example.giphytest.pagination3.enity.RedditPost
 
@@ -16,7 +17,6 @@ class MainBindAdapter(var view: View) : RecyclerView.ViewHolder(view) {
 
     init {
         view.setOnClickListener{
-
         }
     }
 
@@ -36,4 +36,13 @@ class MainBindAdapter(var view: View) : RecyclerView.ViewHolder(view) {
     fun updateScore(children: RedditPost){
         textViewEmail.text = children.title
     }
+//     fun bind(children: Data) {
+//        textViewName.text = "${children.id}"
+//        textViewEmail.text = children.brand
+//    }
+//
+//    fun updateScore(children: Data){
+//        textViewEmail.text = children.brand
+//    }
+
 }
